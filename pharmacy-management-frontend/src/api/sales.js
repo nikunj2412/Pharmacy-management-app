@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:3333/v1/admin"; // Replace with your backend API URL
+const API_BASE_URL = "https://pharmacy-management-app.onrender.com/v1/admin"; // Replace with your backend API URL
 
 // Create a new sales record
 export const createSales = async (data) => {
