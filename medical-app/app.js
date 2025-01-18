@@ -11,10 +11,9 @@ require("dotenv").config();
 
 const app = express();
 
-console.log("url", process.env.MONGO_URL)
 
 mongoose.connect(
-  process.env.MONGO_URL || "mongodb+srv://nikunjanghanna:Nikunj@medical.ure1v.mongodb.net/medical?retryWrites=true&w=majority",
+  process.env.MONGO_URL ,
   { useNewUrlParser: true }
 );
 
@@ -36,7 +35,7 @@ app.use('/v1', routes);
 app.use(errorConverter);
 app.use(errorHandler);
 
-app.listen(process.env.PORT || 3333,()=>{
+app.listen(process.env.PORT,()=>{
 
-    console.log("**** Server is listening at port 3333 !!!! ***")
+    console.log("**** Server is listening at port  !!!! ***")
 })

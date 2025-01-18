@@ -8,11 +8,11 @@ const { userService } = require('../service')
 require("dotenv").config();
 
 
-const JWT_SECRET = process.env.PASSPORT_SECRET_KEY || 'QDw^d2+qu/!2?~Uf';
-const resetPasswordExpirationMinutes = process.env.RESET_PASSWORD_EXPIRATION_MINUTES || 30;
-const resetPasswordCodeSize = process.env.RESET_PASSWORD_CODE_SIZE || 6;
-const accessExpirationMinutes = process.env.ACCESS_EXPIRATION_MINUTES || 30;
-const refreshExpirationDays = process.env.REFRESH_EXPIRATION_DAYS || 30;
+const JWT_SECRET = process.env.PASSPORT_SECRET_KEY;
+const resetPasswordExpirationMinutes = process.env.RESET_PASSWORD_EXPIRATION_MINUTES;
+const resetPasswordCodeSize = process.env.RESET_PASSWORD_CODE_SIZE;
+const accessExpirationMinutes = process.env.ACCESS_EXPIRATION_MINUTES;
+const refreshExpirationDays = process.env.REFRESH_EXPIRATION_DAYS;
 
 const generateToken = (userId, expires, secret = JWT_SECRET) => {
   const payload = {

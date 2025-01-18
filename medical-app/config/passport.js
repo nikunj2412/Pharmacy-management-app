@@ -3,7 +3,7 @@ const User = require('../models/user');
 require("dotenv").config();
 
 const jwtOptions = {
-  secretOrKey: process.env.PASSPORT_SECRET_KEY || 'QDw^d2+qu/!2?~Uf',
+  secretOrKey: process.env.PASSPORT_SECRET_KEY,
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 };
 
