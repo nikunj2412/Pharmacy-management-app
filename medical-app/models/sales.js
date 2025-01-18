@@ -9,9 +9,6 @@ const salesSchema = new mongoose.Schema(
     date: {
       type: Date,
     },
-    salesNumber: {
-      type: Number,
-    },
     medicines: [
       {
         medicineId: {

@@ -64,11 +64,6 @@ const Sales = () => {
 
   const columns = [
     {
-      title: "Sales Number",
-      dataIndex: "salesNumber",
-      key: "salesNumber",
-    },
-    {
       title: "User",
       dataIndex: "userId",
       key: "userId",

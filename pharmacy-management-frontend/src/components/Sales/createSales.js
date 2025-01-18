@@ -74,7 +74,6 @@ const CreateSales = ({ onSuccess }) => {
     try {
       const payload = {
         userId: values.userId,
-        salesNumber: values.salesNumber,
         medicines: selectedMedicines.map(({ medicineId, Quantity, price }) => ({
           medicineId,
           Quantity,
@@ -160,14 +159,6 @@ const CreateSales = ({ onSuccess }) => {
                   </Option>
                 ))}
               </Select>
-            </Form.Item>
-
-            <Form.Item
-              name="salesNumber"
-              label="Sales Number"
-              rules={[{ required: true, message: "Please enter a sales number" }]}
-            >
-              <Input placeholder="Enter sales number" type="number" />
             </Form.Item>
 
             <Form.Item

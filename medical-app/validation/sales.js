@@ -4,7 +4,6 @@ Joi.objectId = require('joi-objectid')(Joi);
 const createSales = {
   body: Joi.object().keys({
     totalPrice: Joi.number().required(),
-    salesNumber: Joi.number().required(),
     medicines: Joi.array()
       .items(
         Joi.object().keys({

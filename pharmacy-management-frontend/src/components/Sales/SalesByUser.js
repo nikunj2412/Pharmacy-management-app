@@ -34,11 +34,6 @@ const SalesByUser = ({ userId }) => {
 
   const columns = [
     {
-      title: "Sales Number",
-      dataIndex: "salesNumber",
-      key: "salesNumber",
-    },
-    {
       title: "Total Price",
       dataIndex: "totalPrice",
       key: "totalPrice",

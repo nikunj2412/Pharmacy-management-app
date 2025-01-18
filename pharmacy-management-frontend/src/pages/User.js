@@ -120,11 +120,6 @@ const Users = () => {
 
   const salesColumns = [
     {
-      title: "Sales Number",
-      dataIndex: "salesNumber",
-      key: "salesNumber",
-    },
-    {
       title: "Total Price",
       dataIndex: "totalPrice",
       key: "totalPrice",
