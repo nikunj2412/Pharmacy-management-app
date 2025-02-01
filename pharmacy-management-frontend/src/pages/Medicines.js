@@ -1,26 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Spin, notification, Drawer, Modal } from "antd";
+import { Table, Button, Spin, notification, Drawer, Modal, Select, Input } from "antd";
 import { getAllMedicines } from "../api/admin";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { deleteMedicine } from "../api/medicine";
 import CreateMedicine from "../components/Medicine/createMedicine";
 import UpdateMedicine from "../components/Medicine/updateMedicine";
-import moment from "moment"; // Import moment for date formatting
+import moment from "moment";
+
+const { Option } = Select;
 
 const Medicines = () => {
   const [medicines, setMedicines] = useState([]);
+  const [filteredMedicines, setFilteredMedicines] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isCreateDrawerVisible, setIsCreateDrawerVisible] = useState(false); // Drawer for creating medicine
+  const [isCreateDrawerVisible, setIsCreateDrawerVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
   const [selectedMedicine, setSelectedMedicine] = useState(null);
+  const [searchValue, setSearchValue] = useState(""); // Search input state
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchMedicines();
+  }, []);
 
   const fetchMedicines = async () => {
     setLoading(true);
     try {
-      const response = await getAllMedicines(); // Fetch all medicines
-      setMedicines(response.data || []); // Assuming `response.data` contains the medicine list
+      const response = await getAllMedicines();
+      const medicineList = response.data || [];
+      setMedicines(medicineList);
+      setFilteredMedicines(medicineList); // Set filtered list initially
     } catch (error) {
       notification.error({
         message: "Error",
@@ -31,17 +41,13 @@ const Medicines = () => {
     }
   };
 
-  useEffect(() => {
-    fetchMedicines(); // Fetch medicines on component mount
-  }, []);
-
   const handleAddMedicine = () => {
     setIsCreateDrawerVisible(true);
   };
 
   const handleEditMedicine = (medicine) => {
-    setSelectedMedicine(medicine); // Set selected medicine for editing
-    setIsUpdateModalVisible(true); // Open the update modal
+    setSelectedMedicine(medicine);
+    setIsUpdateModalVisible(true);
   };
 
   const handleDeleteMedicine = async (medicineId) => {
@@ -63,6 +69,22 @@ const Medicines = () => {
     }
   };
 
+  // 🔹 Handle Search (Dropdown & Typing)
+  const handleSearchChange = (value) => {
+    if (!value) {
+      // If value is empty, reset filtered list to all medicines
+      setSearchValue("");
+      setFilteredMedicines(medicines);
+      return;
+    }
+  
+    setSearchValue(value);
+    const filtered = medicines.filter((medicine) =>
+      medicine?.name?.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredMedicines(filtered);
+  };
+
   const columns = [
     {
       title: "Name",
@@ -82,7 +104,7 @@ const Medicines = () => {
     {
       title: "Actual Price",
       dataIndex: "accualPrice",
-      key: "accualPrice", // Display actual price
+      key: "accualPrice",
     },
     {
       title: "Expiry Date",
@@ -95,18 +117,10 @@ const Medicines = () => {
       key: "actions",
       render: (_, record) => (
         <div>
-          <Button
-            type="link"
-            onClick={() => handleEditMedicine(record)}
-            style={{ marginRight: "10px" }}
-          >
+          <Button type="link" onClick={() => handleEditMedicine(record)} style={{ marginRight: "10px" }}>
             Edit
           </Button>
-          <Button
-            type="link"
-            danger
-            onClick={() => handleDeleteMedicine(record.id)}
-          >
+          <Button type="link" danger onClick={() => handleDeleteMedicine(record.id)}>
             Delete
           </Button>
         </div>
@@ -118,26 +132,38 @@ const Medicines = () => {
     <div style={{ padding: "20px" }}>
       <h2>Medicines</h2>
 
-      <Button
-        type="default"
-        onClick={() => navigate("/dashboard")} // Navigate to dashboard
-        style={{ marginBottom: "20px", marginRight: "10px" }}
-      >
+      {/* 🔹 Search & Filter Section */}
+      <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+      <Select
+  showSearch
+  placeholder="Search Medicine..."
+  style={{ width: "300px" }}
+  onChange={handleSearchChange}
+  onSearch={handleSearchChange}
+  value={searchValue}
+  allowClear
+>
+  {medicines.map((medicine) => (
+    <Option key={medicine._id} value={medicine.name}>
+      {medicine.name}
+    </Option>
+  ))}
+</Select>
+      </div>
+
+      <Button type="default" onClick={() => navigate("/dashboard")} style={{ marginBottom: "20px", marginRight: "10px" }}>
         Back
       </Button>
 
-      <Button
-        type="primary"
-        onClick={handleAddMedicine}
-        style={{ marginBottom: "20px" }}
-      >
+      <Button type="primary" onClick={handleAddMedicine} style={{ marginBottom: "20px" }}>
         Add Medicine
       </Button>
+
       {loading ? (
         <Spin size="large" />
       ) : (
         <Table
-          dataSource={medicines}
+          dataSource={filteredMedicines} // Use filtered list instead of full list
           columns={columns}
           rowKey={(record) => record._id}
           pagination={{ pageSize: 5 }}
@@ -148,7 +174,7 @@ const Medicines = () => {
       <Drawer
         title="Create Medicine"
         placement="right"
-        width="100%" // Full-page width
+        width="100%"
         onClose={() => setIsCreateDrawerVisible(false)}
         visible={isCreateDrawerVisible}
       >
@@ -158,18 +184,13 @@ const Medicines = () => {
             setIsCreateDrawerVisible(false);
           }}
         />
-        </Drawer>
+      </Drawer>
 
       {/* Update Medicine Modal */}
-      <Modal
-        visible={isUpdateModalVisible}
-        title="Update Medicine"
-        footer={null}
-        onCancel={() => setIsUpdateModalVisible(false)}
-      >
+      <Modal visible={isUpdateModalVisible} title="Update Medicine" footer={null} onCancel={() => setIsUpdateModalVisible(false)}>
         {selectedMedicine && (
           <UpdateMedicine
-            key={selectedMedicine._id} // Ensure unique key for re-rendering
+            key={selectedMedicine._id}
             medicine={selectedMedicine}
             onMedicineUpdated={() => {
               fetchMedicines();

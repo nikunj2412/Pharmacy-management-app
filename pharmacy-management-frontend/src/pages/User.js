@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, notification, Spin, Drawer } from "antd";
+import { Table, Button, Modal, notification, Spin, Drawer, Select, Input } from "antd";
 import { getAllUsers } from "../api/admin";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import { deleteUserById } from "../api/user";
 import CreateUser from "../components/User/createUser";
 import UpdateUser from "../components/User/UpdateUser";
-import { getSalesByUserId } from "../api/sales"; // Import API to fetch sales by user
+import { getSalesByUserId } from "../api/sales";
+
+const { Option } = Select;
 
 const Users = () => {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]); // For search filter
   const [loading, setLoading] = useState(false);
-  // const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
-  const [drawerVisible, setDrawerVisible] = useState(false); // Control for Create User Drawer
-  const [salesModalVisible, setSalesModalVisible] = useState(false); // For Sales modal
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [salesModalVisible, setSalesModalVisible] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [selectedSales, setSelectedSales] = useState([]); // To hold sales data for a user
+  const [selectedSales, setSelectedSales] = useState([]);
+  const [searchValue, setSearchValue] = useState(""); // Store selected user search input
 
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
@@ -28,6 +31,7 @@ const Users = () => {
     try {
       const response = await getAllUsers();
       setUsers(response.data || []);
+      setFilteredUsers(response.data || []); // Set both lists initially
     } catch (error) {
       notification.error({
         message: "Error",
@@ -54,13 +58,16 @@ const Users = () => {
     }
   };
 
-  const handleCreateUser = () => {
-    setDrawerVisible(true);
-  };
-
-  const handleUpdateUser = (userId) => {
-    setSelectedUserId(userId);
-    setIsUpdateModalVisible(true);
+  const handleSearchChange = (value) => {
+    setSearchValue(value);
+    if (!value) {
+      setFilteredUsers(users); // Reset to full list when input is cleared
+      return;
+    }
+    const filtered = users.filter((user) =>
+      `${user.firstName} ${user.lastName}`.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredUsers(filtered);
   };
 
   const handleDeleteUser = async (userId) => {
@@ -82,17 +89,13 @@ const Users = () => {
     }
   };
 
-  const handleViewSales = (userId) => {
-    fetchSalesByUser(userId); // Fetch sales by user and open modal
-  };
-
   const columns = [
     {
       title: "Name",
       dataIndex: "firstName",
       key: "firstName",
       render: (_, record) => (
-        <Button type="link" onClick={() => handleViewSales(record.id)}>
+        <Button type="link" onClick={() => fetchSalesByUser(record.id)}>
           {`${record.firstName} ${record.lastName}`}
         </Button>
       ),
@@ -107,7 +110,7 @@ const Users = () => {
       key: "actions",
       render: (_, record) => (
         <div>
-          <Button type="link" onClick={() => handleUpdateUser(record.id)}>
+          <Button type="link" onClick={() => setSelectedUserId(record.id) || setIsUpdateModalVisible(true)}>
             Edit
           </Button>
           <Button type="link" danger onClick={() => handleDeleteUser(record.id)}>
@@ -118,60 +121,46 @@ const Users = () => {
     },
   ];
 
-  const salesColumns = [
-    {
-      title: "Total Price",
-      dataIndex: "totalPrice",
-      key: "totalPrice",
-      render: (price) => `$${price.toFixed(2)}`,
-    },
-    {
-      title: "Date",
-      dataIndex: "date",
-      key: "date",
-      render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A"),
-    },
-    {
-      title: "Medicines",
-      dataIndex: "medicines",
-      key: "medicines",
-      render: (medicines) =>
-        medicines.map((med) => (
-          <div key={med.medicineId}>
-            <strong>{med.medicineId?.name || "Unknown"}</strong> - Quantity: {med.Quantity}, Price per unit: ${med.price}
-          </div>
-        )),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => (status ? "Paid" : "Unpaid"),
-    }
-  ];
-
   return (
     <div style={{ padding: "20px" }}>
       <h2>Users</h2>
 
-      {/* Back Button */}
+      {/* Navigation Buttons */}
       <Button
         type="default"
-        onClick={() => navigate("/dashboard")} // Navigate to dashboard
+        onClick={() => navigate("/dashboard")}
         style={{ marginBottom: "20px", marginRight: "10px" }}
       >
         Back
       </Button>
 
-      <Button type="primary" onClick={handleCreateUser} style={{ marginBottom: "20px" }}>
+      <Button type="primary" onClick={() => setDrawerVisible(true)} style={{ marginBottom: "20px" }}>
         Add User
       </Button>
 
+      {/* Search Functionality */}
+      <Select
+        showSearch
+        allowClear
+        placeholder="Search by Name"
+        style={{ width: "300px", marginBottom: "20px", display: "block" }}
+        onSearch={handleSearchChange}
+        onChange={handleSearchChange}
+        value={searchValue || undefined}
+      >
+        {users.map((user) => (
+          <Option key={user.id} value={`${user.firstName} ${user.lastName}`}>
+            {user.firstName} {user.lastName}
+          </Option>
+        ))}
+      </Select>
+
+      {/* User Table */}
       {loading ? (
         <Spin size="large" />
       ) : (
         <Table
-          dataSource={users}
+          dataSource={filteredUsers}
           columns={columns}
           rowKey={(record) => record.id}
           pagination={{ pageSize: 5 }}
@@ -201,13 +190,15 @@ const Users = () => {
         onCancel={() => setIsUpdateModalVisible(false)}
         footer={null}
       >
-        <UpdateUser
-          userId={selectedUserId} // Pass selectedUserId as userId
-          onUserUpdated={() => {
-            fetchUsers();
-            setIsUpdateModalVisible(false);
-          }}
-        />
+        {selectedUserId && (
+          <UpdateUser
+            userId={selectedUserId}
+            onUserUpdated={() => {
+              fetchUsers();
+              setIsUpdateModalVisible(false);
+            }}
+          />
+        )}
       </Modal>
 
       {/* Sales Modal */}
@@ -220,7 +211,22 @@ const Users = () => {
       >
         <Table
           dataSource={selectedSales}
-          columns={salesColumns}
+          columns={[
+            { title: "Total Price", dataIndex: "totalPrice", key: "totalPrice", render: (price) => `₹${price.toFixed(2)}` },
+            { title: "Date", dataIndex: "date", key: "date", render: (date) => (date ? new Date(date).toLocaleDateString() : "N/A") },
+            {
+              title: "Medicines",
+              dataIndex: "medicines",
+              key: "medicines",
+              render: (medicines) =>
+                medicines.map((med) => (
+                  <div key={med.medicineId}>
+                    <strong>{med.medicineId?.name || "Unknown"}</strong> - Quantity: {med.Quantity}, Price per unit: ₹{med.price}
+                  </div>
+                )),
+            },
+            { title: "Status", dataIndex: "status", key: "status", render: (status) => (status ? "Paid" : "Unpaid") },
+          ]}
           rowKey={(record) => record.id}
           pagination={{ pageSize: 5 }}
         />

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Table, Button, notification, Spin, Drawer, Modal } from "antd";
+import { Table, Button, notification, Spin, Drawer, Modal, Select } from "antd";
 import { getAllSales } from "../api/admin";
 import { deleteSalesById as deleteSales } from "../api/sales";
 import CreateSales from "../components/Sales/createSales";
@@ -8,14 +8,18 @@ import UpdateSales from "../components/Sales/updateSales";
 import { generateSalesPDF } from "../utils/pdfGenerator";
 import SalesPDF from "../components/salesPDF";
 
+const { Option } = Select;
+
 const Sales = () => {
   const [sales, setSales] = useState([]);
+  const [filteredSales, setFilteredSales] = useState([]); // Filtered data
   const [loading, setLoading] = useState(false);
   const [isCreateDrawerVisible, setIsCreateDrawerVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
   const [selectedSalesId, setSelectedSalesId] = useState(null);
   const [invoiceNumber, setInvoiceNumber] = useState(1);
   const [selectedSalesData, setSelectedSalesData] = useState(null);
+  const [searchValue, setSearchValue] = useState(""); // Store selected user search input
 
   const navigate = useNavigate();
 
@@ -29,6 +33,7 @@ const Sales = () => {
       const response = await getAllSales();
       const salesData = response.data || [];
       setSales(salesData);
+      setFilteredSales(salesData); // Initially, filtered data = all data
       setInvoiceNumber(1 + salesData.length);
     } catch (error) {
       notification.error({
@@ -40,26 +45,41 @@ const Sales = () => {
     }
   };
 
-  // 🔹 Handle HTML PDF Generation
+  // 🔹 Handle search filter
+  const handleSearchChange = (value) => {
+    setSearchValue(value);
+    if (!value) {
+      setFilteredSales(sales); // Reset to full list when input is cleared
+      return;
+    }
+    const filtered = sales.filter((sale) =>
+      `${sale.userId?.firstName} ${sale.userId?.lastName}`
+        .toLowerCase()
+        .includes(value.toLowerCase())
+    );
+    setFilteredSales(filtered);
+  };
+
+  // 🔹 Handle PDF Download
   const handleDownloadHTMLPDF = (salesData) => {
     setSelectedSalesData(salesData);
     setTimeout(() => {
       generateSalesPDF(salesData, salesData.invoiceNumber);
-    }, 500); // Small delay to ensure invoice is rendered
+    }, 500);
   };
 
-  // Open Create Sales Drawer
+  // 🔹 Open Create Sales Drawer
   const handleCreateSales = () => {
     setIsCreateDrawerVisible(true);
   };
 
-  // Open Update Sales Modal
+  // 🔹 Open Update Sales Modal
   const handleUpdateSales = (salesId) => {
     setSelectedSalesId(salesId);
     setIsUpdateModalVisible(true);
   };
 
-  // Delete Sales Record
+  // 🔹 Delete Sales Record
   const handleDeleteSales = async (salesId) => {
     setLoading(true);
     try {
@@ -79,7 +99,7 @@ const Sales = () => {
     }
   };
 
-  // Table Columns
+  // 🔹 Table Columns
   const columns = [
     {
       title: "Invoice #",
@@ -143,11 +163,28 @@ const Sales = () => {
         Add Sales
       </Button>
 
+      {/* Search Dropdown */}
+      <Select
+        showSearch
+        allowClear
+        placeholder="Search by User Name"
+        style={{ width: "300px", marginBottom: "20px", display: "block" }}
+        onSearch={handleSearchChange}
+        onChange={handleSearchChange}
+        value={searchValue || undefined}
+      >
+        {sales.map((sale) => (
+          <Option key={sale.id} value={`${sale.userId?.firstName} ${sale.userId?.lastName}`}>
+            {sale.userId?.firstName} {sale.userId?.lastName}
+          </Option>
+        ))}
+      </Select>
+
       {/* Sales Table */}
       {loading ? (
         <Spin size="large" />
       ) : (
-        <Table dataSource={sales} columns={columns} rowKey={(record) => record.id} pagination={{ pageSize: 5 }} />
+        <Table dataSource={filteredSales} columns={columns} rowKey={(record) => record.id} pagination={{ pageSize: 5 }} />
       )}
 
       {/* Create Sales Drawer */}
