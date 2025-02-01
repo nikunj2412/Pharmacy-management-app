@@ -19,11 +19,11 @@ const SalesPDF = ({ salesData, invoiceNumber }) => {
         }}
       >
         {/* Header */}
-        <h2 style={{ textAlign: "center", marginBottom: "5px" }}>SHREE GEL FAMILY MALL</h2>
+        <h2 style={{ textAlign: "center", marginBottom: "5px" }}>NISRAG AYURVEDIK UPCHAR KENDRA</h2>
         <p style={{ textAlign: "center", margin: "0" }}>
-          C-1, Shaurashta Soc-2, Nr. G.G Zadafiya School, A.K Road, Hirabag, Surat - 395008
+          Gate no.2 - Bhumi Darshan Complex, 102, opp.Manishnagar, Katargam, Surat, Gujarat - 395004.
         </p>
-        <p style={{ textAlign: "center", margin: "0" }}>Mobile: 99249 89218</p>
+        <p style={{ textAlign: "center", margin: "0" }}>Mobile: 98794 14484</p>
 
         {/* Invoice Details */}
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", borderBottom: "1px solid black", paddingBottom: "10px" }}>

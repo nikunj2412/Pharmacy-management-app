@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Form, Input, Select, DatePicker, Button, notification, Spin } from "antd";
 import { createSales } from "../../api/sales";
 import { getAllUsers, getAllMedicines } from "../../api/admin";
-// import { generatePDF } from "../../utils/pdfUtils"; // Import the generatePDF utility
 
 const { Option } = Select;
 
